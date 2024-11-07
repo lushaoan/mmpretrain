@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from mmpretrain.utils.dependency import WITH_MULTIMODAL
+from .barcode_dataset import BarcodeDataset, BarcodeDatasetLabelFolder
 from .base_dataset import BaseDataset
 from .builder import build_dataset
 from .caltech101 import Caltech101
@@ -26,11 +27,33 @@ from .transforms import *  # noqa: F401,F403
 from .voc import VOC
 
 __all__ = [
-    'BaseDataset', 'CIFAR10', 'CIFAR100', 'CUB', 'Caltech101', 'CustomDataset',
-    'DTD', 'FGVCAircraft', 'FashionMNIST', 'Flowers102', 'Food101', 'ImageNet',
-    'ImageNet21k', 'InShop', 'KFoldDataset', 'MNIST', 'MultiLabelDataset',
-    'MultiTaskDataset', 'NLVR2', 'OxfordIIITPet', 'Places205', 'SUN397',
-    'StanfordCars', 'VOC', 'build_dataset'
+    "BaseDataset",
+    "CIFAR10",
+    "CIFAR100",
+    "CUB",
+    "Caltech101",
+    "CustomDataset",
+    "DTD",
+    "FGVCAircraft",
+    "FashionMNIST",
+    "Flowers102",
+    "Food101",
+    "ImageNet",
+    "ImageNet21k",
+    "InShop",
+    "KFoldDataset",
+    "MNIST",
+    "MultiLabelDataset",
+    "MultiTaskDataset",
+    "NLVR2",
+    "OxfordIIITPet",
+    "Places205",
+    "SUN397",
+    "StanfordCars",
+    "VOC",
+    "build_dataset",
+    "BarcodeDataset",
+    "BarcodeDatasetLabelFolder",
 ]
 
 if WITH_MULTIMODAL:
@@ -53,10 +76,26 @@ if WITH_MULTIMODAL:
     from .vizwiz import VizWiz
     from .vsr import VSR
 
-    __all__.extend([
-        'COCOCaption', 'COCORetrieval', 'COCOVQA', 'FlamingoEvalCOCOCaption',
-        'FlamingoEvalCOCOVQA', 'Flickr30kCaption', 'Flickr30kRetrieval',
-        'RefCOCO', 'VisualGenomeQA', 'ScienceQA', 'NoCaps', 'GQA', 'TextVQA',
-        'VSR', 'VizWiz', 'OCRVQA', 'InfographicVQA', 'IconQA',
-        'MiniGPT4Dataset'
-    ])
+    __all__.extend(
+        [
+            "COCOCaption",
+            "COCORetrieval",
+            "COCOVQA",
+            "FlamingoEvalCOCOCaption",
+            "FlamingoEvalCOCOVQA",
+            "Flickr30kCaption",
+            "Flickr30kRetrieval",
+            "RefCOCO",
+            "VisualGenomeQA",
+            "ScienceQA",
+            "NoCaps",
+            "GQA",
+            "TextVQA",
+            "VSR",
+            "VizWiz",
+            "OCRVQA",
+            "InfographicVQA",
+            "IconQA",
+            "MiniGPT4Dataset",
+        ]
+    )

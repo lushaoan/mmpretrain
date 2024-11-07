@@ -1,0 +1,7 @@
+{
+    "name": "run-mmcls",
+    "image": "harbor.smoa.cc/lushaoan/mmlab:v1",
+    "gpu": 4,
+    "command": "/bin/bash && cd /dataset/shaoanlu/github/mmlab/mmpretrain/ && bash run_train.sh",
+    "arch": "ampere"
+}

@@ -4,6 +4,9 @@ import os
 import os.path as osp
 from copy import deepcopy
 
+import sys
+sys.path.append('/dataset/shaoanlu/github/mmlab/mmpretrain')
+
 import mmengine
 from mmengine.config import Config, ConfigDict, DictAction
 from mmengine.evaluator import DumpResults

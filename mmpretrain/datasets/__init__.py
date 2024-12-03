@@ -18,6 +18,7 @@ from .mnist import MNIST, FashionMNIST
 from .multi_label import MultiLabelDataset
 from .multi_task import MultiTaskDataset
 from .nlvr2 import NLVR2
+from .oned_decoder_dataset import OnedDecoderDataset
 from .oxfordiiitpet import OxfordIIITPet
 from .places205 import Places205
 from .samplers import *  # noqa: F401,F403
@@ -54,6 +55,7 @@ __all__ = [
     "build_dataset",
     "BarcodeDataset",
     "BarcodeDatasetLabelFolder",
+    "OnedDecoderDataset",
 ]
 
 if WITH_MULTIMODAL:

@@ -5,13 +5,20 @@ from typing import List, Optional, Sequence, Tuple, Union
 
 import torch
 import torch.nn.functional as F
-from mmengine.model import (BaseDataPreprocessor, ImgDataPreprocessor,
-                            stack_batch)
+from mmengine.model import (
+    BaseDataPreprocessor,
+    ImgDataPreprocessor,
+    stack_batch,
+)
 
 from mmpretrain.registry import MODELS
-from mmpretrain.structures import (DataSample, MultiTaskDataSample,
-                                   batch_label_to_onehot, cat_batch_labels,
-                                   tensor_split)
+from mmpretrain.structures import (
+    DataSample,
+    MultiTaskDataSample,
+    batch_label_to_onehot,
+    cat_batch_labels,
+    tensor_split,
+)
 from .batch_augments import RandomBatchAugment
 
 
@@ -54,15 +61,17 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
             :class:`mmpretrain.models.RandomBatchAugment`.
     """
 
-    def __init__(self,
-                 mean: Sequence[Number] = None,
-                 std: Sequence[Number] = None,
-                 pad_size_divisor: int = 1,
-                 pad_value: Number = 0,
-                 to_rgb: bool = False,
-                 to_onehot: bool = False,
-                 num_classes: Optional[int] = None,
-                 batch_augments: Optional[dict] = None):
+    def __init__(
+        self,
+        mean: Sequence[Number] = None,
+        std: Sequence[Number] = None,
+        pad_size_divisor: int = 1,
+        pad_value: Number = 0,
+        to_rgb: bool = False,
+        to_onehot: bool = False,
+        num_classes: Optional[int] = None,
+        batch_augments: Optional[dict] = None,
+    ):
         super().__init__()
         self.pad_size_divisor = pad_size_divisor
         self.pad_value = pad_value
@@ -71,14 +80,14 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
         self.num_classes = num_classes
 
         if mean is not None:
-            assert std is not None, 'To enable the normalization in ' \
-                'preprocessing, please specify both `mean` and `std`.'
+            assert std is not None, (
+                "To enable the normalization in "
+                "preprocessing, please specify both `mean` and `std`."
+            )
             # Enable the normalization in preprocessing.
             self._enable_normalize = True
-            self.register_buffer('mean',
-                                 torch.tensor(mean).view(-1, 1, 1), False)
-            self.register_buffer('std',
-                                 torch.tensor(std).view(-1, 1, 1), False)
+            self.register_buffer("mean", torch.tensor(mean).view(-1, 1, 1), False)
+            self.register_buffer("std", torch.tensor(std).view(-1, 1, 1), False)
         else:
             self._enable_normalize = False
 
@@ -86,10 +95,12 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
             self.batch_augments = RandomBatchAugment(**batch_augments)
             if not self.to_onehot:
                 from mmengine.logging import MMLogger
+
                 MMLogger.get_current_instance().info(
-                    'Because batch augmentations are enabled, the data '
-                    'preprocessor automatically enables the `to_onehot` '
-                    'option to generate one-hot format labels.')
+                    "Because batch augmentations are enabled, the data "
+                    "preprocessor automatically enables the `to_onehot` "
+                    "option to generate one-hot format labels."
+                )
                 self.to_onehot = True
         else:
             self.batch_augments = None
@@ -105,7 +116,7 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
         Returns:
             dict: Data in the same format as the model input.
         """
-        inputs = self.cast_data(data['inputs'])
+        inputs = self.cast_data(data["inputs"])
 
         if isinstance(inputs, torch.Tensor):
             # The branch if use `default_collate` as the collate_fn in the
@@ -124,14 +135,11 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
             if self.pad_size_divisor > 1:
                 h, w = inputs.shape[-2:]
 
-                target_h = math.ceil(
-                    h / self.pad_size_divisor) * self.pad_size_divisor
-                target_w = math.ceil(
-                    w / self.pad_size_divisor) * self.pad_size_divisor
+                target_h = math.ceil(h / self.pad_size_divisor) * self.pad_size_divisor
+                target_w = math.ceil(w / self.pad_size_divisor) * self.pad_size_divisor
                 pad_h = target_h - h
                 pad_w = target_w - w
-                inputs = F.pad(inputs, (0, pad_w, 0, pad_h), 'constant',
-                               self.pad_value)
+                inputs = F.pad(inputs, (0, pad_w, 0, pad_h), "constant", self.pad_value)
         else:
             # The branch if use `pseudo_collate` as the collate_fn in the
             # dataloader.
@@ -149,44 +157,47 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
 
                 processed_inputs.append(input_)
             # Combine padding and stack
-            inputs = stack_batch(processed_inputs, self.pad_size_divisor,
-                                 self.pad_value)
+            inputs = stack_batch(
+                processed_inputs, self.pad_size_divisor, self.pad_value
+            )
 
-        data_samples = data.get('data_samples', None)
+        data_samples = data.get("data_samples", None)
         sample_item = data_samples[0] if data_samples is not None else None
 
         if isinstance(sample_item, DataSample):
             batch_label = None
             batch_score = None
 
-            if 'gt_label' in sample_item:
+            if "gt_label" in sample_item:
                 gt_labels = [sample.gt_label for sample in data_samples]
                 batch_label, label_indices = cat_batch_labels(gt_labels)
                 batch_label = batch_label.to(self.device)
-            if 'gt_score' in sample_item:
+            if "gt_score" in sample_item:
                 gt_scores = [sample.gt_score for sample in data_samples]
                 batch_score = torch.stack(gt_scores).to(self.device)
-            elif self.to_onehot and 'gt_label' in sample_item:
-                assert batch_label is not None, \
-                    'Cannot generate onehot format labels because no labels.'
-                num_classes = self.num_classes or sample_item.get(
-                    'num_classes')
-                assert num_classes is not None, \
-                    'Cannot generate one-hot format labels because not set ' \
-                    '`num_classes` in `data_preprocessor`.'
+            elif self.to_onehot and "gt_label" in sample_item:
+                assert (
+                    batch_label is not None
+                ), "Cannot generate onehot format labels because no labels."
+                num_classes = self.num_classes or sample_item.get("num_classes")
+                assert num_classes is not None, (
+                    "Cannot generate one-hot format labels because not set "
+                    "`num_classes` in `data_preprocessor`."
+                )
                 batch_score = batch_label_to_onehot(
-                    batch_label, label_indices, num_classes).to(self.device)
+                    batch_label, label_indices, num_classes
+                ).to(self.device)
+            # elif "indices" in sample_item:
 
             # ----- Batch Augmentations ----
-            if (training and self.batch_augments is not None
-                    and batch_score is not None):
+            if training and self.batch_augments is not None and batch_score is not None:
                 inputs, batch_score = self.batch_augments(inputs, batch_score)
 
             # ----- scatter labels and scores to data samples ---
             if batch_label is not None:
                 for sample, label in zip(
-                        data_samples, tensor_split(batch_label,
-                                                   label_indices)):
+                    data_samples, tensor_split(batch_label, label_indices)
+                ):
                     sample.set_gt_label(label)
             if batch_score is not None:
                 for sample, score in zip(data_samples, batch_score):
@@ -194,7 +205,7 @@ class ClsDataPreprocessor(BaseDataPreprocessor):
         elif isinstance(sample_item, MultiTaskDataSample):
             data_samples = self.cast_data(data_samples)
 
-        return {'inputs': inputs, 'data_samples': data_samples}
+        return {"inputs": inputs, "data_samples": data_samples}
 
 
 @MODELS.register_module()
@@ -205,15 +216,17 @@ class SelfSupDataPreprocessor(ImgDataPreprocessor):
     supports ``inputs`` as torch.Tensor or a list of torch.Tensor.
     """
 
-    def __init__(self,
-                 mean: Optional[Sequence[Union[float, int]]] = None,
-                 std: Optional[Sequence[Union[float, int]]] = None,
-                 pad_size_divisor: int = 1,
-                 pad_value: Union[float, int] = 0,
-                 to_rgb: bool = False,
-                 bgr_to_rgb: bool = False,
-                 rgb_to_bgr: bool = False,
-                 non_blocking: Optional[bool] = False):
+    def __init__(
+        self,
+        mean: Optional[Sequence[Union[float, int]]] = None,
+        std: Optional[Sequence[Union[float, int]]] = None,
+        pad_size_divisor: int = 1,
+        pad_value: Union[float, int] = 0,
+        to_rgb: bool = False,
+        bgr_to_rgb: bool = False,
+        rgb_to_bgr: bool = False,
+        non_blocking: Optional[bool] = False,
+    ):
         super().__init__(
             mean=mean,
             std=std,
@@ -221,14 +234,13 @@ class SelfSupDataPreprocessor(ImgDataPreprocessor):
             pad_value=pad_value,
             bgr_to_rgb=bgr_to_rgb,
             rgb_to_bgr=rgb_to_bgr,
-            non_blocking=non_blocking)
+            non_blocking=non_blocking,
+        )
 
         self._channel_conversion = to_rgb or bgr_to_rgb or rgb_to_bgr
 
     def forward(
-            self,
-            data: dict,
-            training: bool = False
+        self, data: dict, training: bool = False
     ) -> Tuple[List[torch.Tensor], Optional[list]]:
         """Performs normalization and bgr2rgb conversion based on
         ``BaseDataPreprocessor``.
@@ -243,9 +255,10 @@ class SelfSupDataPreprocessor(ImgDataPreprocessor):
             Tuple[torch.Tensor, Optional[list]]: Data in the same format as the
             model input.
         """
-        assert isinstance(data,
-                          dict), 'Please use default_collate in dataloader, \
-            instead of pseudo_collate.'
+        assert isinstance(
+            data, dict
+        ), "Please use default_collate in dataloader, \
+            instead of pseudo_collate."
 
         data = [val for _, val in data.items()]
         batch_inputs, batch_data_samples = self.cast_data(data)
@@ -257,17 +270,16 @@ class SelfSupDataPreprocessor(ImgDataPreprocessor):
         if isinstance(batch_inputs, list):
             # channel transform
             if self._channel_conversion:
-                batch_inputs = [
-                    _input[:, [2, 1, 0], ...] for _input in batch_inputs
-                ]
+                batch_inputs = [_input[:, [2, 1, 0], ...] for _input in batch_inputs]
 
             # convert to float after channel conversion to ensure efficiency
             batch_inputs = [_input.float() for _input in batch_inputs]
 
             # normalization.
             if self._enable_normalize:
-                batch_inputs = [(_input - self.mean) / self.std
-                                for _input in batch_inputs]
+                batch_inputs = [
+                    (_input - self.mean) / self.std for _input in batch_inputs
+                ]
         else:
             # channel transform
             if self._channel_conversion:
@@ -280,7 +292,7 @@ class SelfSupDataPreprocessor(ImgDataPreprocessor):
             if self._enable_normalize:
                 batch_inputs = (batch_inputs - self.mean) / self.std
 
-        return {'inputs': batch_inputs, 'data_samples': batch_data_samples}
+        return {"inputs": batch_inputs, "data_samples": batch_data_samples}
 
 
 @MODELS.register_module()
@@ -318,41 +330,46 @@ class TwoNormDataPreprocessor(SelfSupDataPreprocessor):
             data to device. Defaults to False.
     """
 
-    def __init__(self,
-                 mean: Optional[Sequence[Union[float, int]]] = None,
-                 std: Optional[Sequence[Union[float, int]]] = None,
-                 second_mean: Sequence[Union[float, int]] = None,
-                 second_std: Sequence[Union[float, int]] = None,
-                 pad_size_divisor: int = 1,
-                 pad_value: Union[float, int] = 0,
-                 to_rgb: bool = False,
-                 non_blocking: Optional[bool] = False):
+    def __init__(
+        self,
+        mean: Optional[Sequence[Union[float, int]]] = None,
+        std: Optional[Sequence[Union[float, int]]] = None,
+        second_mean: Sequence[Union[float, int]] = None,
+        second_std: Sequence[Union[float, int]] = None,
+        pad_size_divisor: int = 1,
+        pad_value: Union[float, int] = 0,
+        to_rgb: bool = False,
+        non_blocking: Optional[bool] = False,
+    ):
         super().__init__(
             mean=mean,
             std=std,
             pad_size_divisor=pad_size_divisor,
             pad_value=pad_value,
             to_rgb=to_rgb,
-            non_blocking=non_blocking)
+            non_blocking=non_blocking,
+        )
         assert (second_mean is not None) and (second_std is not None), (
-            'mean and std should not be None while using '
-            '`TwoNormDataPreprocessor`')
+            "mean and std should not be None while using " "`TwoNormDataPreprocessor`"
+        )
         assert len(second_mean) == 3 or len(second_mean) == 1, (
-            '`mean` should have 1 or 3 values, to be compatible with '
-            f'RGB or gray image, but got {len(second_mean)} values')
+            "`mean` should have 1 or 3 values, to be compatible with "
+            f"RGB or gray image, but got {len(second_mean)} values"
+        )
         assert len(second_std) == 3 or len(second_std) == 1, (
-            '`std` should have 1 or 3 values, to be compatible with RGB '
-            f'or gray image, but got {len(std)} values')
+            "`std` should have 1 or 3 values, to be compatible with RGB "
+            f"or gray image, but got {len(std)} values"
+        )
 
-        self.register_buffer('second_mean',
-                             torch.tensor(second_mean).view(-1, 1, 1), False)
-        self.register_buffer('second_std',
-                             torch.tensor(second_std).view(-1, 1, 1), False)
+        self.register_buffer(
+            "second_mean", torch.tensor(second_mean).view(-1, 1, 1), False
+        )
+        self.register_buffer(
+            "second_std", torch.tensor(second_std).view(-1, 1, 1), False
+        )
 
     def forward(
-            self,
-            data: dict,
-            training: bool = False
+        self, data: dict, training: bool = False
     ) -> Tuple[List[torch.Tensor], Optional[list]]:
         """Performs normalization and bgr2rgb conversion based on
         ``BaseDataPreprocessor``. The ``batch_inputs`` in forward function is a
@@ -372,9 +389,7 @@ class TwoNormDataPreprocessor(SelfSupDataPreprocessor):
         batch_inputs, batch_data_samples = self.cast_data(data)
         # channel transform
         if self._channel_conversion:
-            batch_inputs = [
-                _input[:, [2, 1, 0], ...] for _input in batch_inputs
-            ]
+            batch_inputs = [_input[:, [2, 1, 0], ...] for _input in batch_inputs]
 
         # convert to float after channel conversion to ensure efficiency
         batch_inputs = [_input.float() for _input in batch_inputs]
@@ -385,10 +400,10 @@ class TwoNormDataPreprocessor(SelfSupDataPreprocessor):
         if self._enable_normalize:
             batch_inputs = [
                 (batch_inputs[0] - self.mean) / self.std,
-                (batch_inputs[1] - self.second_mean) / self.second_std
+                (batch_inputs[1] - self.second_mean) / self.second_std,
             ]
 
-        return {'inputs': batch_inputs, 'data_samples': batch_data_samples}
+        return {"inputs": batch_inputs, "data_samples": batch_data_samples}
 
 
 @MODELS.register_module()
@@ -413,13 +428,15 @@ class VideoDataPreprocessor(BaseDataPreprocessor):
             Defaults to ``'NCHW'``.
     """
 
-    def __init__(self,
-                 mean: Optional[Sequence[Union[float, int]]] = None,
-                 std: Optional[Sequence[Union[float, int]]] = None,
-                 pad_size_divisor: int = 1,
-                 pad_value: Union[float, int] = 0,
-                 to_rgb: bool = False,
-                 format_shape: str = 'NCHW') -> None:
+    def __init__(
+        self,
+        mean: Optional[Sequence[Union[float, int]]] = None,
+        std: Optional[Sequence[Union[float, int]]] = None,
+        pad_size_divisor: int = 1,
+        pad_value: Union[float, int] = 0,
+        to_rgb: bool = False,
+        format_shape: str = "NCHW",
+    ) -> None:
         super().__init__()
         self.pad_size_divisor = pad_size_divisor
         self.pad_value = pad_value
@@ -427,33 +444,35 @@ class VideoDataPreprocessor(BaseDataPreprocessor):
         self.format_shape = format_shape
 
         if mean is not None:
-            assert std is not None, 'To enable the normalization in ' \
-                                    'preprocessing, please specify both ' \
-                                    '`mean` and `std`.'
+            assert std is not None, (
+                "To enable the normalization in "
+                "preprocessing, please specify both "
+                "`mean` and `std`."
+            )
             # Enable the normalization in preprocessing.
             self._enable_normalize = True
-            if self.format_shape == 'NCHW':
+            if self.format_shape == "NCHW":
                 normalizer_shape = (-1, 1, 1)
-            elif self.format_shape == 'NCTHW':
+            elif self.format_shape == "NCTHW":
                 normalizer_shape = (-1, 1, 1, 1)
             else:
-                raise ValueError(f'Invalid format shape: {format_shape}')
+                raise ValueError(f"Invalid format shape: {format_shape}")
 
             self.register_buffer(
-                'mean',
+                "mean",
                 torch.tensor(mean, dtype=torch.float32).view(normalizer_shape),
-                False)
+                False,
+            )
             self.register_buffer(
-                'std',
+                "std",
                 torch.tensor(std, dtype=torch.float32).view(normalizer_shape),
-                False)
+                False,
+            )
         else:
             self._enable_normalize = False
 
     def forward(
-            self,
-            data: dict,
-            training: bool = False
+        self, data: dict, training: bool = False
     ) -> Tuple[List[torch.Tensor], Optional[list]]:
         """Performs normalization、padding and bgr2rgb conversion based on
         ``BaseDataPreprocessor``.
@@ -475,37 +494,35 @@ class VideoDataPreprocessor(BaseDataPreprocessor):
         if isinstance(batch_inputs, list):
             # channel transform
             if self.to_rgb:
-                if self.format_shape == 'NCHW':
+                if self.format_shape == "NCHW":
                     batch_inputs = [
                         _input[..., [2, 1, 0], :, :] for _input in batch_inputs
                     ]
-                elif self.format_shape == 'NCTHW':
+                elif self.format_shape == "NCTHW":
                     batch_inputs = [
-                        _input[..., [2, 1, 0], :, :, :]
-                        for _input in batch_inputs
+                        _input[..., [2, 1, 0], :, :, :] for _input in batch_inputs
                     ]
                 else:
-                    raise ValueError(
-                        f'Invalid format shape: {self.format_shape}')
+                    raise ValueError(f"Invalid format shape: {self.format_shape}")
 
             # convert to float after channel conversion to ensure efficiency
             batch_inputs = [_input.float() for _input in batch_inputs]
 
             # normalization
             if self._enable_normalize:
-                batch_inputs = [(_input - self.mean) / self.std
-                                for _input in batch_inputs]
+                batch_inputs = [
+                    (_input - self.mean) / self.std for _input in batch_inputs
+                ]
 
         else:
             # channel transform
             if self.to_rgb:
-                if self.format_shape == 'NCHW':
+                if self.format_shape == "NCHW":
                     batch_inputs = batch_inputs[..., [2, 1, 0], :, :]
-                elif self.format_shape == 'NCTHW':
+                elif self.format_shape == "NCTHW":
                     batch_inputs = batch_inputs[..., [2, 1, 0], :, :, :]
                 else:
-                    raise ValueError(
-                        f'Invalid format shape: {self.format_shape}')
+                    raise ValueError(f"Invalid format shape: {self.format_shape}")
 
             # convert to float after channel conversion to ensure efficiency
             batch_inputs = batch_inputs.float()
@@ -514,7 +531,7 @@ class VideoDataPreprocessor(BaseDataPreprocessor):
             if self._enable_normalize:
                 batch_inputs = (batch_inputs - self.mean) / self.std
 
-        return {'inputs': batch_inputs, 'data_samples': batch_data_samples}
+        return {"inputs": batch_inputs, "data_samples": batch_data_samples}
 
 
 @MODELS.register_module()
@@ -557,14 +574,14 @@ class MultiModalDataPreprocessor(BaseDataPreprocessor):
         self.to_rgb = to_rgb
 
         if mean is not None:
-            assert std is not None, 'To enable the normalization in ' \
-                'preprocessing, please specify both `mean` and `std`.'
+            assert std is not None, (
+                "To enable the normalization in "
+                "preprocessing, please specify both `mean` and `std`."
+            )
             # Enable the normalization in preprocessing.
             self._enable_normalize = True
-            self.register_buffer('mean',
-                                 torch.tensor(mean).view(-1, 1, 1), False)
-            self.register_buffer('std',
-                                 torch.tensor(std).view(-1, 1, 1), False)
+            self.register_buffer("mean", torch.tensor(mean).view(-1, 1, 1), False)
+            self.register_buffer("std", torch.tensor(std).view(-1, 1, 1), False)
         else:
             self._enable_normalize = False
 
@@ -581,7 +598,7 @@ class MultiModalDataPreprocessor(BaseDataPreprocessor):
         """
         data = self.cast_data(data)
 
-        imgs = data.get('inputs', None)
+        imgs = data.get("inputs", None)
 
         def _process_img(img):
             # ------ To RGB ------
@@ -597,14 +614,11 @@ class MultiModalDataPreprocessor(BaseDataPreprocessor):
             if self.pad_size_divisor > 1:
                 h, w = img.shape[-2:]
 
-                target_h = math.ceil(
-                    h / self.pad_size_divisor) * self.pad_size_divisor
-                target_w = math.ceil(
-                    w / self.pad_size_divisor) * self.pad_size_divisor
+                target_h = math.ceil(h / self.pad_size_divisor) * self.pad_size_divisor
+                target_w = math.ceil(w / self.pad_size_divisor) * self.pad_size_divisor
                 pad_h = target_h - h
                 pad_w = target_w - w
-                img = F.pad(img, (0, pad_w, 0, pad_h), 'constant',
-                            self.pad_value)
+                img = F.pad(img, (0, pad_w, 0, pad_h), "constant", self.pad_value)
             return img
 
         if isinstance(imgs, torch.Tensor):
@@ -613,8 +627,92 @@ class MultiModalDataPreprocessor(BaseDataPreprocessor):
             # B, T, C, H, W
             imgs = torch.stack([_process_img(img) for img in imgs], dim=1)
         elif imgs is not None:
-            raise ValueError(f'{type(imgs)} is not supported for imgs inputs.')
+            raise ValueError(f"{type(imgs)} is not supported for imgs inputs.")
 
-        data_samples = data.get('data_samples', None)
+        data_samples = data.get("data_samples", None)
 
-        return {'images': imgs, 'data_samples': data_samples}
+        return {"images": imgs, "data_samples": data_samples}
+
+
+@MODELS.register_module()
+class OnedDecoderDataPreprocessor(ClsDataPreprocessor):
+    def __init__(
+        self,
+        mean: Sequence[Number] = None,
+        std: Sequence[Number] = None,
+        pad_size_divisor: int = 1,
+        pad_value: Number = 0,
+        to_rgb: bool = False,
+        to_onehot: bool = False,
+        num_classes: int = 0,
+        batch_augments: dict = None,
+    ):
+        super().__init__(
+            mean,
+            std,
+            pad_size_divisor,
+            pad_value,
+            to_rgb,
+            to_onehot,
+            num_classes,
+            batch_augments,
+        )
+
+    def forward(self, data: dict, training: bool = False) -> dict:
+        inputs = self.cast_data(data["inputs"])
+
+        if isinstance(inputs, torch.Tensor):
+            # The branch if use `default_collate` as the collate_fn in the
+            # dataloader.
+
+            # ------ To RGB ------
+            if self.to_rgb and inputs.size(1) == 3:
+                inputs = inputs.flip(1)
+
+            # -- Normalization ---
+            inputs = inputs.float()
+            if self._enable_normalize:
+                inputs = (inputs - self.mean) / self.std
+
+            # ------ Padding -----
+            if self.pad_size_divisor > 1:
+                h, w = inputs.shape[-2:]
+
+                target_h = math.ceil(h / self.pad_size_divisor) * self.pad_size_divisor
+                target_w = math.ceil(w / self.pad_size_divisor) * self.pad_size_divisor
+                pad_h = target_h - h
+                pad_w = target_w - w
+                inputs = F.pad(inputs, (0, pad_w, 0, pad_h), "constant", self.pad_value)
+        else:
+            # The branch if use `pseudo_collate` as the collate_fn in the
+            # dataloader.
+
+            processed_inputs = []
+            for input_ in inputs:
+                # ------ To RGB ------
+                if self.to_rgb and input_.size(0) == 3:
+                    input_ = input_.flip(0)
+
+                # -- Normalization ---
+                input_ = input_.float()
+                if self._enable_normalize:
+                    input_ = (input_ - self.mean) / self.std
+
+                processed_inputs.append(input_)
+            # Combine padding and stack
+            inputs = stack_batch(
+                processed_inputs, self.pad_size_divisor, self.pad_value
+            )
+
+        data_samples = data.get("data_samples", None)
+        sample_item = data_samples[0] if data_samples is not None else None
+
+        if isinstance(sample_item, DataSample):
+            assert "indices" in sample_item.keys()
+            assert "indices_len" in sample_item.keys()
+
+            for item in data_samples:
+                item.indices = item.indices.to(self.device)
+                item.indices_len = torch.tensor(item.indices_len).to(self.device)
+
+        return {"inputs": inputs, "data_samples": data_samples}

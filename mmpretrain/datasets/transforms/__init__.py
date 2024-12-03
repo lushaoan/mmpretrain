@@ -79,6 +79,8 @@ for t in (
 ):
     TRANSFORMS.register_module(module=t)
 
+from .oned_decoder.padding import OffsetAndPadIndices
+
 __all__ = [
     "NumpyToPIL",
     "PILToNumpy",
@@ -131,4 +133,5 @@ __all__ = [
     "remove_transform",
     "MAERandomResizedCrop",
     "Regularize",
+    "OffsetAndPadIndices",
 ]

@@ -1,3 +1,11 @@
+'''
+Author: Lu ShaoAn
+Brief: 
+Version: 0.1
+Date: 2024-11-07 19:07:14
+Copyright: Copyright (c) 2024
+LastEditTime: 2024-11-07 19:08:52
+'''
 # Copyright (c) OpenMMLab. All rights reserved.
 import mmcv
 import mmengine

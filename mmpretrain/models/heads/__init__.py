@@ -1,3 +1,21 @@
+"""
+Author: Lu ShaoAn
+Brief: 
+Version: 0.1
+Date: 2024-11-08 16:06:53
+Copyright: Copyright (c) 2024
+LastEditTime: 2024-11-08 16:06:53
+"""
+
+"""
+Author: Lu ShaoAn
+Brief: 
+Version: 0.1
+Date: 2024-11-08 16:06:03
+Copyright: Copyright (c) 2024
+LastEditTime: 2024-11-08 16:06:04
+"""
+
 # Copyright (c) OpenMMLab. All rights reserved.
 from .beitv1_head import BEiTV1Head
 from .beitv2_head import BEiTV2Head
@@ -5,6 +23,7 @@ from .cae_head import CAEHead
 from .cls_head import ClsHead
 from .conformer_head import ConformerHead
 from .contrastive_head import ContrastiveHead
+from .ctc_head import CTCHead
 from .deit_head import DeiTClsHead
 from .efficientformer_head import EfficientFormerClsHead
 from .grounding_head import GroundingHead
@@ -33,37 +52,38 @@ from .vision_transformer_head import VisionTransformerClsHead
 from .vqa_head import VQAGenerationHead
 
 __all__ = [
-    'ClsHead',
-    'LinearClsHead',
-    'StackedLinearClsHead',
-    'MultiLabelClsHead',
-    'MultiLabelLinearClsHead',
-    'VisionTransformerClsHead',
-    'DeiTClsHead',
-    'ConformerHead',
-    'EfficientFormerClsHead',
-    'ArcFaceClsHead',
-    'CSRAClsHead',
-    'MultiTaskHead',
-    'LeViTClsHead',
-    'VigClsHead',
-    'BEiTV1Head',
-    'BEiTV2Head',
-    'CAEHead',
-    'ContrastiveHead',
-    'LatentCrossCorrelationHead',
-    'LatentPredictHead',
-    'MAEPretrainHead',
-    'MixMIMPretrainHead',
-    'SwAVHead',
-    'MoCoV3Head',
-    'MIMHead',
-    'SimMIMHead',
-    'SeqGenerationHead',
-    'VQAGenerationHead',
-    'ITCHead',
-    'ITMHead',
-    'GroundingHead',
-    'iTPNClipHead',
-    'SparKPretrainHead',
+    "ClsHead",
+    "LinearClsHead",
+    "StackedLinearClsHead",
+    "MultiLabelClsHead",
+    "MultiLabelLinearClsHead",
+    "VisionTransformerClsHead",
+    "DeiTClsHead",
+    "ConformerHead",
+    "EfficientFormerClsHead",
+    "ArcFaceClsHead",
+    "CSRAClsHead",
+    "MultiTaskHead",
+    "LeViTClsHead",
+    "VigClsHead",
+    "BEiTV1Head",
+    "BEiTV2Head",
+    "CAEHead",
+    "ContrastiveHead",
+    "LatentCrossCorrelationHead",
+    "LatentPredictHead",
+    "MAEPretrainHead",
+    "MixMIMPretrainHead",
+    "SwAVHead",
+    "MoCoV3Head",
+    "MIMHead",
+    "SimMIMHead",
+    "SeqGenerationHead",
+    "VQAGenerationHead",
+    "ITCHead",
+    "ITMHead",
+    "GroundingHead",
+    "iTPNClipHead",
+    "SparKPretrainHead",
+    "CTCHead",
 ]
